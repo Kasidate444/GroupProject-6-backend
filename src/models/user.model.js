@@ -1,0 +1,39 @@
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
+
+const userSchema = new mongoose.Schema(
+    {
+        username: { type: String, required: true, trim: true,unique: true,index: true },
+        email: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true,
+            match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format"],
+            index: true
+        },
+        password: { type: String, required: true, minlength: 8, maxlength: 24, select: false },
+        role: { type: String, enum: ["user", "admin", "artist"], default: "user" },
+        display_name: { type: String },
+        profile_picture: { public_id: { type: String }, url: { type: String } },
+    }, { timestamps: true },
+);
+
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) return ;
+
+    this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.methods.toJSON = function () {
+  const user = this.toObject();
+
+  delete user.password;
+  delete user.__v;
+
+  return user;
+};
+
+
+export const User = mongoose.model("User", userSchema);
