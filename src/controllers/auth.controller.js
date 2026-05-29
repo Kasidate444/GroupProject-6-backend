@@ -91,7 +91,7 @@ export const logout = async (req ,res ,next) => {
 
 export const checkUserState = async (req, res, next) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const user = await User.findById(userId);
 
         if (!user) {
