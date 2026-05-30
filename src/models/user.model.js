@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
         password: { type: String, required: true, minlength: 8, maxlength: 24, select: false },
         role: { type: String, enum: ["user", "admin", "artist"], default: "user" },
         display_name: { type: String },
-        profile_picture: { public_id: { type: String }, url: { type: String } },
+        profile_picture: { public_id: { type: String , default: null}, url: { type: String , default: null}},
     }, { timestamps: true },
 );
 

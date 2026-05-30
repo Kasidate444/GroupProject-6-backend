@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 export const register = async (req, res, next) => {
     try {
         const { username, email, password } = req.body || {};
-        const existUser = await User.findOne({ email });
+        const existUser = await User.findOne({ email }, { username});
 
 
         if (!username || !email || !password) {
@@ -17,7 +17,7 @@ export const register = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'this email already exist' })
         };
 
-        const newUser = await User.create({ username, email, password })
+        const newUser = await User.create({ username, email, password , display_name:username,})
         res.status(201).json({ success: true, data: newUser })
 
     } catch (error) {
@@ -35,13 +35,18 @@ export const login = async (req, res, next) => {
         };
 
         const findUser = await User.findOne({ email }).select('+password');
-        const isMatch = await comparePassword(password, findUser.password);
 
-        if (!findUser || !isMatch) {
-            return res.status(401).send({ message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" })
+        // Check if email of this user is not correct
+        if (!findUser) {
+            return res.status(401).send({ success: false , message: "Invalid email or password" })
         };
+        // Check password 
+        const isMatch = await comparePassword(password, findUser.password);
+        if (!isMatch) {
+            return register.status(401).json({ success: false , message: "Invalid email or password" })
+        }
 
-        const token = jwt.sign({ id: findUser._id , role: findUser.role }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ user_Id: findUser._id, role: findUser.role }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         });
 
@@ -58,13 +63,14 @@ export const login = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: 'เข้าสู่ระบบสำเร็จ!',
+            message: 'Logged in successfully',
             user: {
                 _id: findUser._id,
                 username: findUser.username,
                 email: findUser.email,
                 role: findUser.role,
-            },token
+                
+            },
         });
 
 
@@ -73,10 +79,10 @@ export const login = async (req, res, next) => {
     }
 }
 
-export const logout = async (req ,res ,next) => {
+export const logout = async (req, res, next) => {
     const isProd = process.env.NODE_ENV === 'production';
 
-        res.clearCookie('accessToken', {
+    res.clearCookie('accessToken', {
         httpOnly: true,
         secure: isProd, // Only send over HTTPS in production
         sameSite: isProd ? "none" : "lax",
@@ -91,7 +97,7 @@ export const logout = async (req ,res ,next) => {
 
 export const checkUserState = async (req, res, next) => {
     try {
-        const userId = req.user.id;
+        const userId = req.user.user_Id;
         const user = await User.findById(userId);
 
         if (!user) {
