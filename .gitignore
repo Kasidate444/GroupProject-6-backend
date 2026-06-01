@@ -1,3 +1,5 @@
 node_modules/
 
 .env
+
+API_ROUTES_STATUS.md
