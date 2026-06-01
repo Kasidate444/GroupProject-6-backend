@@ -5,9 +5,9 @@ import { getUserProfile, toggleFollowArtist, toggleWishlist, updateUserProfile }
 
 export const router = Router()
 
-router.post('/register', register);
+router.post('/auth/register', register);
 
-router.post('/login' , login);
+router.post('/auth/login' , login);
 
 router.post('/logout', logout);
   
@@ -26,3 +26,4 @@ router.patch('/artists/:artistId/follow',authUser,toggleFollowArtist);
 //add item to wishlist tooggle route;
 router.patch('/products/:productId/wishlist',authUser,toggleWishlist);
 
+ 

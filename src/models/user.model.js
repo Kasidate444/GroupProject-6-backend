@@ -18,9 +18,9 @@ const userSchema = new mongoose.Schema(
         display_name: { type: String, trim: true },
         profile_picture: { public_id: { type: String, default: null }, url: { type: String, default: null } },
         bio: { type: String, maxlength: [250, "Bio must be less than 250 characters"], default: "" },
-        collection: [{  type: mongoose.Schema.Types.ObjectId, ref: 'Products' , purchasedAt: { type: Date, default: Date.now } }],
+        collection: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Products', purchasedAt: { type: Date, default: Date.now } }],
         followingArtist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-        wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Products' } ]
+        wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Products' }]
     }, { timestamps: true },
 );
 
@@ -38,6 +38,12 @@ userSchema.methods.toJSON = function () {
 
     return user;
 };
+
+userSchema.pre('validate', function () {
+    if (!this.display_name) {
+        this.display_name = this.username;
+    }
+});
 
 
 export const User = mongoose.model("User", userSchema);

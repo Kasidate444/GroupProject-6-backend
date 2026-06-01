@@ -10,7 +10,10 @@ export const isArtistOrAdmin = (req, res, next) => {
 
 
 export const isAdmin = (req, res, next) => {
-    if (req.user?.role === 'admin') {
+    const { role } = req.user;
+    
+    // if (req.user?.role === 'admin') {
+    if( role === 'admin') {
         return next();
     }
 

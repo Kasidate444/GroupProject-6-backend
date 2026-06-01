@@ -6,4 +6,4 @@ import { uploadAudio } from '../middlewares/uploadAudio.middleware.js';
 
 export const router = Router();
 
-router.post('/tracks', authUser, isArtistOrAdmin, uploadAudio.single('audio'), createTrack);
+// router.post('/tracks', authUser, isArtistOrAdmin, uploadAudio.single('audio'), createTrack);
