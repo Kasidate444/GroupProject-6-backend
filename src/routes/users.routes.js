@@ -10,15 +10,14 @@ router.post('/register', register);
 router.post('/login' , login);
 
 router.post('/logout', logout);
-
+  
+// authUser reads the cookie token and sets req.user for the controller.
 router.get('/auth/me', authUser, checkUserState);
 
 //Get user profile
-
 router.get('/profile',authUser, getUserProfile);
 
-//Update basic profile
-
+//Update user profile
 router.put('/profile' ,authUser, updateUserProfile);
 
 //favorute artist tooggle route;
