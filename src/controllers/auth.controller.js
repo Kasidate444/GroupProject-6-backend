@@ -1,5 +1,5 @@
 import { User } from '../models/user.model.js';
-import { comparePassword } from '../middlewares/comparePassword.js'
+import { comparePassword } from '../utils/comparePassword.js'
 import jwt from 'jsonwebtoken';
 
 
@@ -17,7 +17,7 @@ export const register = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'this email already exist' })
         };
 
-        const newUser = await User.create({ username, email, password , display_name:username,})
+        const newUser = await User.create({ username, email, password , display_name: username,})
         res.status(201).json({ success: true, data: newUser })
 
     } catch (error) {
@@ -43,7 +43,7 @@ export const login = async (req, res, next) => {
         // Check password 
         const isMatch = await comparePassword(password, findUser.password);
         if (!isMatch) {
-            return register.status(401).json({ success: false , message: "Invalid email or password" })
+            return res.status(401).json({ success: false , message: "Invalid email or password" })
         }
 
         const token = jwt.sign({ user_Id: findUser._id, role: findUser.role }, process.env.JWT_SECRET, {

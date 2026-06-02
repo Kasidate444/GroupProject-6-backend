@@ -1,0 +1,139 @@
+import { User } from '../models/user.model.js';
+import { Product } from '../models/product.model.js'
+import mongoose from 'mongoose';
+
+export const getUserProfile = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.user_Id)
+            .populate('wishlist.product_id')
+            .populate('collection.product_id')
+            .populate('followingArtist', 'display_name profile_picture');
+
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json(user);
+
+    } catch (err) {
+        next(err)
+    }
+}
+
+export const updateUserProfile = async (req, res, next) => {
+    const { display_name, profile_picture, bio } = req.body || {};
+    const update = {};
+    if (display_name !== undefined) update.display_name = display_name;
+    if (profile_picture !== undefined) {
+        if (typeof profile_picture === 'string') {
+            update.profile_picture = { public_id: null, url: profile_picture };
+
+        } else {
+            update.profile_picture = profile_picture;
+        }
+    };
+    if (bio !== undefined) update.bio = bio;
+
+    try {
+        const updateUserInfo = await User.findByIdAndUpdate(req.user.user_Id, update, { returnDocument: "after", runValidators: true, });
+
+        return res.status(200).json({ success: true, data: updateUserInfo });
+
+
+    } catch (err) {
+        next(err);
+    }
+
+}
+
+export const toggleFollowArtist = async (req, res, next) => {
+
+    try {
+        const { artistId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(artistId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid artist id"
+            });
+        }
+
+        const userId = req.user.user_Id
+
+        if (userId === artistId) {
+            return res.status(400).json({ success: false, message: "You cannot follow yourself" });
+        }
+
+        const user = await User.findById(userId)
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const artist = await User.findOne({ _id: artistId, role: 'artist' });
+
+        if (!artist) {
+            return res.status(404).json({ success: false, message: 'Artist not found' })
+        };
+
+        const isFollowed = user.followingArtist.some(id => id.toString() === artistId);
+
+        if (isFollowed) {
+            await User.findByIdAndUpdate(userId, { $pull: { followingArtist: artistId } });
+            return res.json({ success: true, followed: false });
+        }
+
+        await User.findByIdAndUpdate(userId, { $addToSet: { followingArtist: artistId } });
+
+        return res.json({ success: true, followed: true });
+
+    } catch (err) {
+        next(err)
+    }
+
+
+}
+
+export const toggleWishlist = async (req, res, next) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.user.user_Id;
+
+
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid product id"
+            });
+        }
+
+        const user = await User.findById(userId);
+
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const product = await Product.findById(productId);
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        const isWishlisted = user.wishlist.some(i => i.product_id.toString() === productId);
+
+        if (isWishlisted) {
+            await User.findByIdAndUpdate(userId, { $pull: { wishlist: { product_id: productId } } });
+            return res.json({ success: true, wishlisted: false });
+        }
+
+        await User.findByIdAndUpdate(userId, { $addToSet: { wishlist: { product_id: productId } } });
+        return res.json({ success: true, wishlisted: true });
+    } catch (err) {
+        next(err);
+    }
+}
