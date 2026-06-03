@@ -2,11 +2,12 @@ import express from 'express';
 import cookieParser from 'cookie-parser'
 import cors from 'cors';
 import helmet from 'helmet';
+import http from 'http';
 
 import { connectDB } from './config/mongodb.js'
 import { router as apiRouter } from './routes/index.js'
 import { limiter } from './middlewares/ratelimit.middleware.js';
-
+import { setupSocket } from './sockets/index.js';
 
 const app = express();
 
@@ -16,6 +17,10 @@ const allowedOrigins = process.env.CORS_ORIGIN_URL
   .filter(Boolean) ?? [];
 
 const corsOptions = { origin: allowedOrigins, credentials: true };
+
+const server = http.createServer(app);
+
+setupSocket(server, allowedOrigins);
 
 app.use(helmet());
 app.use(express.json());
@@ -43,6 +48,6 @@ app.use((err, req, res, next) => {
 
 
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
   console.log(`Server is running on PORT ${process.env.PORT}`);
 })
