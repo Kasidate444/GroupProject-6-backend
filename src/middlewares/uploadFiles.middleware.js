@@ -35,3 +35,18 @@ export const uploadProductFiles = multer({
     return cb(new Error('Invalid file type'));
   },
 });
+
+
+export const uploadProfileImages = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+    fileFilter: (req, file, cb) => {
+      if ((file.fieldname === 'profile_picture' || file.fieldname === 'banner_picture') && allowedImageTypes.has(file.mimetype)) {
+        return cb(null, true);
+      }
+
+      return cb(new Error('Invalid profile image type'));
+    },
+  });

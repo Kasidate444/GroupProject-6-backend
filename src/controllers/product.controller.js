@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { Product } from '../models/product.model.js'
 import { Track } from '../models/track.model.js';
 import { uploadAudioToCloudinary, uploadImageToCloudinary } from '../utils/cloudinaryUpload.js';
-import { formatProduct } from '../utils/productFormatter.js'
+import { formatProduct, formatPublicProduct } from '../utils/productFormatter.js'
 import { createUniqueProductSlug } from "../utils/productSlug.js";
 
 export const productPopulate = [
@@ -15,7 +15,7 @@ export const getAllProductInfo = async (req, res, next) => {
     try {
         const product = await Product.find({ deletedAt: null }).populate(productPopulate);
 
-        return res.status(200).json({ success: true, data: product.map(formatProduct) });
+        return res.status(200).json({ success: true, data: product.map(formatPublicProduct) });
     }
     catch (err) {
         next(err);
@@ -31,7 +31,7 @@ export const getProductById = async (req, res, next) => {
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
-        return res.status(200).json({ success: true, data: formatProduct(product) });
+        return res.status(200).json({ success: true, data: formatPublicProduct(product) });
     }
     catch (err) {
         next(err);

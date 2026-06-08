@@ -1,8 +1,10 @@
 import { User } from '../models/user.model.js';
-import { Product } from '../models/product.model.js'
-import { comparePassword } from '../utils/comparePassword.js'
+import { Product } from '../models/product.model.js';
+import { comparePassword } from '../utils/comparePassword.js';
+import { productPopulate } from './product.controller.js';
+import { formatOwnedProduct } from '../utils/productFormatter.js';
+import { uploadImageToCloudinary } from '../utils/cloudinaryUpload.js';
 
-import bcrypt from 'bcrypt'
 import mongoose from 'mongoose';
 
 export const getUserProfile = async (req, res, next) => {
@@ -25,20 +27,44 @@ export const getUserProfile = async (req, res, next) => {
 }
 
 export const updateUserProfile = async (req, res, next) => {
-    const { display_name, profile_picture, bio } = req.body || {};
-    const update = {};
-    if (display_name !== undefined) update.display_name = display_name;
-    if (profile_picture !== undefined) {
-        if (typeof profile_picture === 'string') {
-            update.profile_picture = { public_id: null, url: profile_picture };
-
-        } else {
-            update.profile_picture = profile_picture;
-        }
-    };
-    if (bio !== undefined) update.bio = bio;
-
     try {
+        const { display_name, profile_picture, banner_picture, bio } = req.body || {};
+        const update = {};
+        const profileFile = req.files?.profile_picture?.[0];
+        const bannerFile = req.files?.banner_picture?.[0];
+
+        if (display_name !== undefined) update.display_name = display_name;
+        if (bio !== undefined) update.bio = bio;
+
+        if (profileFile) {
+            const upload = await uploadImageToCloudinary(profileFile.buffer);
+            update.profile_picture = {
+                public_id: upload.public_id,
+                url: upload.secure_url,
+            };
+        } else if (profile_picture !== undefined) {
+            if (typeof profile_picture === 'string') {
+                update.profile_picture = { public_id: null, url: profile_picture };
+
+            } else {
+                update.profile_picture = profile_picture;
+            }
+        };
+
+        if (bannerFile) {
+            const upload = await uploadImageToCloudinary(bannerFile.buffer);
+            update.banner_picture = {
+                public_id: upload.public_id,
+                url: upload.secure_url,
+            };
+        } else if (banner_picture !== undefined) {
+            if (typeof banner_picture === 'string') {
+                update.banner_picture = { public_id: null, url: banner_picture };
+            } else {
+                update.banner_picture = banner_picture;
+            }
+        };
+
         const updateUserInfo = await User.findByIdAndUpdate(req.user.user_Id, update, { returnDocument: "after", runValidators: true, });
 
         return res.status(200).json({ success: true, data: updateUserInfo });
@@ -49,6 +75,30 @@ export const updateUserProfile = async (req, res, next) => {
     }
 
 }
+
+export const getMyCollection = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.user_Id).populate({ path: 'collection.product_id', populate: productPopulate, });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found', });
+        }
+        const products = user.collection.map((item) => {
+            if (!item.product_id) return null;
+
+            const product = item.product_id.toObject ? item.product_id.toObject() : item.product_id;
+
+            product.purchasedAt = item.purchasedAt;
+
+            return formatOwnedProduct(product);
+        }).filter(Boolean);
+
+        return res.status(200).json({ success: true, data: products, });
+
+    } catch (err) {
+        next(err)
+    }
+};
 
 export const changePassword = async (req, res, next) => {
     try {
@@ -74,7 +124,6 @@ export const changePassword = async (req, res, next) => {
         next(err)
     }
 }
-
 
 export const toggleFollowArtist = async (req, res, next) => {
 
