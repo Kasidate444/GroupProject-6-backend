@@ -4,6 +4,8 @@ import { comparePassword } from '../utils/comparePassword.js'
 
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose';
+import { productPopulate } from './product.controller.js';
+import { formatOwnedProduct } from '../utils/productFormatter.js';
 
 export const getUserProfile = async (req, res, next) => {
     try {
@@ -50,6 +52,30 @@ export const updateUserProfile = async (req, res, next) => {
 
 }
 
+export const getMyCollection = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.user_Id).populate({ path: 'collection.product_id', populate: productPopulate, });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found', });
+        }
+        const products = user.collection.map((item) => {
+            if (!item.product_id) return null;
+
+            const product = item.product_id.toObject ? item.product_id.toObject() : item.product_id;
+
+            product.purchasedAt = item.purchasedAt;
+
+            return formatOwnedProduct(product);
+        }).filter(Boolean);
+
+        return res.status(200).json({ success: true, data: products,});
+
+    } catch (err) {
+        next(err)
+    }
+};
+
 export const changePassword = async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
@@ -74,7 +100,6 @@ export const changePassword = async (req, res, next) => {
         next(err)
     }
 }
-
 
 export const toggleFollowArtist = async (req, res, next) => {
 

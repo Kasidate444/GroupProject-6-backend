@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { artistRegister, checkUserState, fanRegister, login, logout } from '../controllers/auth.controller.js'
 import { authUser } from '../middlewares/authen.middleware.js';
-import { changePassword, getUserProfile, toggleFollowArtist, toggleWishlist, updateUserProfile } from '../controllers/user.controller.js';
+import { changePassword, getMyCollection, getUserProfile, toggleFollowArtist, toggleWishlist, updateUserProfile } from '../controllers/user.controller.js';
 
 export const router = Router()
 
@@ -33,3 +33,8 @@ router.patch('/products/:productId/wishlist',authUser,toggleWishlist);
 
 //Change passworrd
 router.patch('/profile/password', authUser, changePassword);
+
+
+//Get purchased collection
+
+router.get('/me/collection', authUser, getMyCollection);
