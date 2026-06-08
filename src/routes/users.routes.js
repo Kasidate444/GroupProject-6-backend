@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { artistRegister, checkUserState, fanRegister, login, logout } from '../controllers/auth.controller.js'
 import { authUser } from '../middlewares/authen.middleware.js';
 import { changePassword, getMyCollection, getUserProfile, toggleFollowArtist, toggleWishlist, updateUserProfile } from '../controllers/user.controller.js';
+import { uploadProfileImages } from  '../middlewares/uploadFiles.middleware.js'
 
 export const router = Router()
 
@@ -23,7 +24,10 @@ router.get('/auth/me', authUser, checkUserState);
 router.get('/profile',authUser, getUserProfile);
 
 //Update user profile
-router.put('/profile' ,authUser, updateUserProfile);
+router.put('/profile' ,authUser, uploadProfileImages.fields([
+  { name: 'profile_picture', maxCount: 1 },
+  { name: 'banner_picture', maxCount: 1 },
+]), updateUserProfile);
 
 //favorute artist tooggle route;
 router.patch('/artists/:artistId/follow',authUser,toggleFollowArtist);

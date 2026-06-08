@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
         last_name: { type: String, trim: true, lowercase: true },
         display_name: { type: String, trim: true },
         profile_picture: { public_id: { type: String, default: null }, url: { type: String, default: null } },
-        bio: { type: String, maxlength: [250, "Bio must be less than 250 characters"], default: "" },
+        banner_picture: { public_id: { type: String, default: null }, url: { type: String, default: null } },
         collection: [{
             product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Products', required: true },
             purchasedAt: { type: Date, default: Date.now }
