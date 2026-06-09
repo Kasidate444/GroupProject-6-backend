@@ -288,7 +288,7 @@ export const createSingleProduct = async (req, res, next) => {
                         },
                     },
                 ],
-                { session },
+                { session, ordered: true },
             );
             const [product] = await Product.create(
                 [
@@ -308,7 +308,7 @@ export const createSingleProduct = async (req, res, next) => {
                         tracks: [track._id],
                     },
                 ],
-                { session },
+                { session, ordered: true },
             );
 
             createdProduct = product;
@@ -421,7 +421,7 @@ export const createAlbumProduct = async (req, res, next) => {
                         tracks: tracks.map((track) => track._id),
                     },
                 ],
-                { session },
+                { session, ordered: true },
             );
 
             createdProduct = product;
