@@ -35,6 +35,8 @@ const productSchema = new mongoose.Schema(
         releaseDate: { type: Date, default: Date.now },
         deletedAt: { type: Date, default: null }
     }, { timestamps: true },
-)
+);
+
+export const MerchVariants = mongoose.model('Variants',merchVariantSchema);
 
 export const Product = mongoose.model('Products', productSchema);
