@@ -24,7 +24,7 @@ const cartSchema = new mongoose.Schema({
 );
 
 
-cartItemSchema.index(
+cartSchema.index(
     { user_id : 1, status: 1},
     { unique: true, partialFilterExpression: { status: 'active'}}
 );
