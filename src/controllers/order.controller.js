@@ -157,3 +157,44 @@ export const createOrder = async (req, res, next) => {
         await session.endSession();
     }
 };
+
+export const getOrders = async (req, res, next) => {
+    try {
+        const userId = req.user.user_Id;
+        const query = req.user.role === 'admin' ? {} : { user_id: userId };
+        const orders = await Order.find(query)
+            .sort({ createdAt: -1 })
+            .populate('user_id', 'username email display_name')
+            .populate('items.product_id');
+
+        return res.status(200).json({ success: true, data: orders });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getOrderById = async (req, res, next) => {
+    try {
+        const userId = req.user.user_Id;
+        const { orderId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ success: false, message: 'Invalid orderId' });
+        }
+
+        const query = { _id: orderId };
+        if (req.user.role !== 'admin') query.user_id = userId;
+
+        const order = await Order.findOne(query)
+            .populate('user_id', 'username email display_name')
+            .populate('items.product_id');
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        return res.status(200).json({ success: true, data: order });
+    } catch (err) {
+        next(err);
+    }
+};
