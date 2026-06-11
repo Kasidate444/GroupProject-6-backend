@@ -212,6 +212,8 @@ export const updateUserProfile = async (req, res, next) => {
             update.bio = nextBio;
         }
         if (location !== undefined) update.location = location;
+        if (genre) update.genre = genre;
+        
 
         if (profileFile) {
             const upload = await uploadImageToCloudinary(profileFile.buffer);
@@ -242,12 +244,12 @@ export const updateUserProfile = async (req, res, next) => {
             }
         };
 
-         if (!genre) {
-            update.genre = genre;
-        }
+
+
+
 
         const updateUserInfo = await User.findByIdAndUpdate(req.user.user_Id, update, { returnDocument: "after", runValidators: true, });
-       
+
         return res.status(200).json({ success: true, data: updateUserInfo });
 
 
